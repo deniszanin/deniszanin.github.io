@@ -15,22 +15,21 @@ On this case, we'll have three different **AppVMs**: two *vault domains* which s
 
 That's a *scenario* that looks hard to set up, but having all your *vaults* independently configured, *work-dev* will be straight-forward.
 
-## Configure ##
+Configure
+----------
 
-### Configure Split GPG ###
+## Configure Split GPG ##
 
 I highly recommend to read [Qubes Split GPG on Qubes Documentation](https://www.qubes-os.org/doc/split-gpg/), in case you haven't yet. It covers all basic and advanced topics over **GnuPG** with **Qubes**. On this post you're reading, I'll not cover it extensively. A useful step-by-step guide is available there. To match our case here, replace *work-gpg* referenced in the documentation as the *vault domain* to **gpg-vault**, name used here in this post.
 
-dom0, *"the special domain"*
-----------------------------
+### dom0, *"the special domain"* ###
 
 1. Install package **qubes-gpg-split-dom0**, with the command `sudo qubes-dom0-update qubes-gpg-split-dom0`.
 2. Add required policies to **dom0** to allow *interdomain* connections, editing `/etc/qubes-rpc/policy/qubes.Gpg` and adding the following line **to the top of file qubes.Gpg**.
 
 `work-dev gpg-vault allow`
 
-gpg-vault
----------
+### gpg-vault ###
 
 The idea is to store your GPG keys here, as described in documentation,
 
@@ -52,12 +51,11 @@ sudo dnf install qubes-gpg-split # for Fedora Template
 
 `echo "export QUBES_GPG_AUTOACCEPT=86400" >> ~/.bash_profile`
 
-work-dev
---------
+### work-dev ###
 
 We certainly have to make some changes over this *domain* to finish **Split GPG** configuration, but I'll leave for later on this text. It'll be easier to change everything once on *work-dev*, besides going back and forth over this *domain*.
 
-### Configure Split SSH ###
+## Configure Split SSH ##
 
 Configuring **Split SSH** requires a bunch of patience and concentration, but you can do it, and you will, *right*? Like I said before, I already wrote about it in an extensively post with most of the major steps explained. Follow [this guide about how to configure *Split SSH* on Qubes 4](https://github.com/deniszanin/deniszanin.github.io/blob/master/_posts/06-30-2018-using-split-ssh-qubes-4-en.md).
 
@@ -73,14 +71,14 @@ So, after setting **ssh-vault** up, like I explained [here](https://github.com/d
 **An import note, parte two:** generating a new *SSH key pair* on **ssh-vault**, you'll be prompted for file location to save the key. At this moment, don't hit *Enter*; instead, complete with a different location (name) for the key.
 
 ```
-#  Generating a new key pair in ssh-vault, 
+# Generating a new key pair in ssh-vault, 
 # change its default location when prompted.
-Enter a file in which to save the key (/home/you/.ssh/id_rsa):
-
 # Enter a file with different location and name, like
-                /home/user/.ssh/my_github_rsakey
-        or      /home/user/.ssh/github_secret_sshkey
-        etc. etc. etc.
+#         /home/user/.ssh/my_github_rsakey
+# or      /home/user/.ssh/github_secret_sshkey
+#        etc. etc. etc.
+
+Enter a file in which to save the key (/home/you/.ssh/id_rsa):
 ```
 
 *Don't worry! Take your time, I'm still here.**
@@ -90,7 +88,6 @@ Doing these things, you should have now in **ssh-vault** a new *SSH key pair* th
 ```
 # For example:
 ssh-add ~/.ssh/my_github_rsakey
-# ...etc. etc. etc.
 ```
 
 If it worked, `ssh-agent` asks key's passphrase and then a confirmation message is printed, like `Identity added: /home/user/.ssh/my_github_rsakey (/home/user/.ssh/my_github_rsakey)`. To double check, run `ssh-add -L` command to list all your keys installed on **ssh-vault** *domain*.
@@ -98,7 +95,8 @@ If it worked, `ssh-agent` asks key's passphrase and then a confirmation message 
 And finally, add the following lines to your local *SSH* config file, `~/.ssh/config` to specify for *SSH* which information is going to be used for `github.com` host.
 
 ```
-# Github account for SSH access                                                Host github.com
+# Github account for SSH access
+Host github.com
     Hostname github.com
     User git
     IdentityFile ~/.ssh/my_github_rsakey
@@ -106,14 +104,13 @@ And finally, add the following lines to your local *SSH* config file, `~/.ssh/co
 
 Done! Are you still here? :)
 
-### Configure *work-dev* domain ###
+## Configure *work-dev* domain ##
 
 Our last move in this tutorial is to set everything up on your *dev domain*, which is named as **work-dev** here. Remember what is its purpose? Working on *git* tool for signed commits and pushing/pulling over *SSH*, **with** Internet connection, and with *zero* private/public keys held inside it.
 
 One topic by time, let's move to configure **work-dev**.
 
-git tool
----------
+### git tool ###
 
 *git* tool is able to handle with GPG natively, but in order to work with **Split GPG**, *git* configuration file (`~/.gitconfig`, by default) must be edited. The reason is that *Split GPG* uses a different *client* named `qubes-gpg-client-wrapper`, instead of `gpg` command, for managing connections between *client AppVM* and *vault*.
 
@@ -132,8 +129,7 @@ Editing `~/.gitconfig` is our next goal.
 
 **Note**: variable `signingkey`, in `~/.gitconfig`, must be declared so that *git* use a specific **GPG subkey**. To work, must be appended with `!`, as explained [here](https://stackoverflow.com/questions/48230336/git-uses-wrong-subkey-for-signing-commits-with-gpg-key) (found it after several issues signing my commits).
 
-Split SSH
-----------
+### Split SSH ###
 
 Again, if you haven't configured **Split SSH** on **work-dev** *AppVM*, follow [steps detailed here](https://github.com/deniszanin/deniszanin.github.io/blob/master/_posts/06-30-2018-using-split-ssh-qubes-4-en.md), over the item **4. Configure ssh-client**. **work-dev** has exactly same function as *ssh-client*, introduced on this page I linked. Tasks to do are:
 
@@ -142,8 +138,7 @@ Again, if you haven't configured **Split SSH** on **work-dev** *AppVM*, follow [
 
 The "contents" to be appended on files are available on same [page I linked](https://github.com/deniszanin/deniszanin.github.io/blob/master/_posts/06-30-2018-using-split-ssh-qubes-4-en.md) *two lines ago*.
 
-Split GPG
-----------
+### Split GPG ###
 
 Backing on track of **Split GPG** configuration, we continue to finish our setup on *GPG*. This time working only with **work-dev** *domain*.
 
@@ -161,9 +156,11 @@ qubes-gpg-client -K
 
 And... it's done!
 
-## Conclusion ##
+Conclusion
+----------
 
-Are you still here? So, congrats! It was **NOT** an easy task... but you made it! And thank you for your patience. To finish, test your workstation.
+Are you still here? So, congrats! 
+It was **NOT** an easy task, for sure... but you made it! And thank you for your patience. To finish, test your workstation.
 
 Restart each *AppVM* and test it out.
 
