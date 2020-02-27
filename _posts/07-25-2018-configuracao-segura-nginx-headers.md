@@ -1,6 +1,8 @@
 Configuração segura dos cabeçalhos no Nginx
 ============================================
 
+***Nota:** Este texto foi atualizado em 22/02/2020 para incluir dúvidas de outros usuários sobre a configuração dos cabeçalhos e a solução para estas dúvidas.*
+
 Enquanto pesquisava sobre segurança digital, vasculhando em vários sites pelo Google, encontrei aleatoriamente o *blog* de [Scott Helme](https://scotthelme.co.uk/). Por este, descobri que é autor de um projeto de *cybersecurity*, cujo objetivo é analisar e avaliar gratuitamente o nível de segurança de um determinado site, baseando-se ***apenas*** nos cabeçalhos do servidor *(HTTP response headers)*. O projeto está disponível em [https://securityheaders.io/](https://securityheaders.io/).
 
 Ao realizar o teste por aqui, descobri que a minha configuração definida no ***Nginx*** estava com vários cabeçalhos mal configurados. Resolvi, então, escrever este tutorial de análise e correção dos cabeçalhos *(somente para **Nginx**; no Google você encontrará os passo-a-passos para outros servidores)*.
@@ -59,6 +61,42 @@ add_header Content-Security-Policy "upgrade-insecure-requests; block-all-mixed-c
 ```
 add_header X-Frame-Options SAMEORIGIN;
 ```
+
+---
+
+***Atualização sobre o uso do X-Frame Options (22/02/2020)***
+
+Como já citei, o **X-Frame-Options** dirá ao navegador se o site permite, ou não, ser inserido em um *frame* (ou *iframe*). Este *header* aceita dois valores: `DENY`, para bloquear toda requisição em *frames*; ou, como no exemplo, `SAMEORIGIN`. 
+
+Esta semana, o usuário David entrou em contato para tirar uma dúvida sobre um terceiro valor para o *header* **X-Frame-Options**: `ALLOW-FROM`. Este valor permitia especificar quais *URIs* poderiam abrir um *frame*; uma lista de domínios *seguros* e autorizados a requisitar *frames*. Mesmo definindo de forma correta na configuração do ***Nginx***, David não estava conseguindo liberar seus *URIs* específicos.
+
+O problema que encontramos foi que o valor `ALLOW-FROM` está **obsoleto**. De acordo com a documentação da **Mozilla**[^5], *headers* definidos com este valor são ignorados pelos navegadores *modernos*. Os navegadores que **não** suportam este valor de cabeçalho, `ALLOW-FROM` são: **Chrome** (todas as versões), **Firefox** (versão 18-70), **Opera** (todas as versões), **Safari** (todas as versões), enquanto `SAMEORIGIN` é amplamente aceito pelos navegadores.[^6]
+
+##### Então... qual a solução?
+
+Para resolver o problema de David, precisamos configurar um outro *header*: **Content-Security-Policy**. A descrição sobre este cabeçalho já foi detalhada neste texto, mas faltou dizer sobre um valor: o `frame-ancestors`.[^7]
+
+Para permitir requisições de *frame, iframe, object, embed ou applet*, de domínios específicos, não vamos usar o `ALLOW-FROM`, que está obsoleto, e vamos configurar o cabeçalho **Content-Security-Policy** com o valor `frame-ancestors`. Exemplo:
+
+```
+add_header Content-Security-Policy "frame-ancestors 'self' outrodominio.com;";
+```
+
+Lembrando que `'self'` refere-se ao próprio domínio.
+Ou, uma outra configuração possível:
+
+```
+add_header Content-Security-Policy "frame-ancestors seudominio.com outrodominio.com;";
+```
+
+Para incluir estes valores de configuração juntamente com outros valores do **Content-Security-Policy**, separe-os com um ponto-e-vírgula, `;`, como no exemplo do item **b** deste texto.
+
+O valor `frame-ancestors` é amplamente aceito pelos navegadores modernos com exceção do *Internet Explorer*.
+
+Mas... o *IE* é um navegador moderno?
+Deixo a pergunta no ar... 
+
+---
 
 #### d. *X-XSS-Protection* ####
 
@@ -138,3 +176,10 @@ Quick Reference Guide*, [fonte externa](https://content-security-policy.com/).
 [^3]: Em inglês, *Optimising NGINX and Server Security*, [fonte externa](https://gregorykelleher.com/nginx_security).
 
 [^4]: Em inglês, *A new security header: Feature Policy*, [fonte externa](https://scotthelme.co.uk/a-new-security-header-feature-policy/).
+
+[^5]: Em inglês, *MDN web docs: X-Frame-Options*, [fonte externa](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options)
+
+[^6]: A tabela completa de suporte dos navegadores está disponível na documentação do X-Frame-Options (em inglês), [fonte externa](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options)
+
+[^7]: Em inglês, *MDN web docs: CSP: frame-ancestors*, [fonte externa](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-ancestors)
+
