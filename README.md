@@ -1,7 +1,7 @@
 About me
 =========
 
-Hey all! I'm Denis Zanin, journalist and developer. Honestly, I don't want to bore you with long 'abouts' statements, so, check out [about.md](/about) and [contact.md](/contact) for a complete info about me.
+Hey all! I'm Denis Zanin, journalist and developer. Honestly, I don't want to bore you with long 'abouts' statements, so, check out [_about/](/_about/) and [_contact/](/_contact/) for a complete info about me.
 
 About this blog
 ----------------
@@ -12,7 +12,7 @@ Contents
 ----------
 
 * My blog posts hosted on [deniszanin.com](https://deniszanin.com) and also available here in Github pages (inside [_posts/](/_posts/) directory).
-* [contact.md](/contact) and pub keys.
+* [_contact/](/_contact/) and pub keys.
 
 Bugs? Comments?
 ----------------
